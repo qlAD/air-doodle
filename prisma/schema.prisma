@@ -1,0 +1,78 @@
+// Prisma schema —— AI 手势涂鸦工坊
+// 开发环境：SQLite；生产环境可切换 provider 为 postgresql
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "sqlite"
+  url      = env("DATABASE_URL")
+}
+
+// ==================== 用户模型 ====================
+model User {
+  id           String        @id @default(cuid())
+  nickname     String?
+  avatarUrl    String? // 头像URL
+  streak       Int           @default(0) // 连续打卡天数
+  lastCheckIn  DateTime? // 最近打卡日期
+  createdAt    DateTime      @default(now())
+  achievements Achievement[] // 用户成就列表
+  artworks     Artwork[] // 用户作品列表
+  likes        Like[] // 点赞记录
+  comments     Comment[] // 评论记录
+}
+
+// ==================== 成就模型 ====================
+model Achievement {
+  id         String   @id @default(cuid())
+  key        String // 成就唯一标识（如 streak_3 / brush_master）
+  name       String // 成就名称
+  desc       String // 成就描述
+  iconUrl    String? // 成就图标URL/emoji
+  unlockedAt DateTime @default(now())
+  userId     String
+  user       User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, key]) // 同一用户同一成就仅解锁一次
+}
+
+// ==================== 作品模型 ====================
+model Artwork {
+  id         String    @id @default(cuid())
+  imgUrl     String // 作品图片存储路径
+  name       String? // 作品自定义名称
+  isPublic   Boolean   @default(true) // 是否公开投稿社区
+  templateId String? // 临摹模板来源ID（为空则为自由创作）
+  filterType String? // AI滤镜类型（anime/oil/sketch/film）
+  brushType  String? // 主要使用的画笔类型
+  likesCount Int       @default(0) // 点赞数冗余字段，提升查询性能
+  userId     String? // 创作者用户ID（可选兼容匿名）
+  user       User?     @relation(fields: [userId], references: [id])
+  createdAt  DateTime  @default(now())
+  likes      Like[] // 点赞记录
+  comments   Comment[] // 评论记录
+}
+
+// ==================== 点赞模型 ====================
+model Like {
+  id        String   @id @default(cuid())
+  artworkId String
+  userId    String
+  createdAt DateTime @default(now())
+  artwork   Artwork  @relation(fields: [artworkId], references: [id], onDelete: Cascade)
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([artworkId, userId]) // 同一用户对同一作品仅可点赞一次
+}
+
+// ==================== 评论模型 ====================
+model Comment {
+  id        String   @id @default(cuid())
+  content   String
+  artworkId String
+  userId    String
+  createdAt DateTime @default(now())
+  artwork   Artwork  @relation(fields: [artworkId], references: [id], onDelete: Cascade)
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+}

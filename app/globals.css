@@ -1,0 +1,91 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root {
+  --bg-gradient: linear-gradient(135deg, #fdeff9 0%, #ecf7ff 50%, #e6fff4 100%);
+}
+
+* {
+  box-sizing: border-box;
+}
+
+html,
+body {
+  margin: 0;
+  padding: 0;
+  min-height: 100%;
+  font-family: 'Baloo 2', 'Comic Sans MS', system-ui, -apple-system, sans-serif;
+  background: var(--bg-gradient);
+  color: #3b3b5c;
+  -webkit-font-smoothing: antialiased;
+}
+
+/* 柔和卡片 */
+.card-soft {
+  background: rgba(255, 255, 255, 0.75);
+  backdrop-filter: blur(12px);
+  border: 1px solid rgba(255, 255, 255, 0.6);
+  box-shadow: 0 10px 30px -12px rgba(167, 139, 250, 0.4);
+}
+
+/* 糖果按钮 */
+.btn-candy {
+  background: linear-gradient(135deg, #ff7eb9, #a78bfa);
+  color: white;
+  border: none;
+  border-radius: 9999px;
+  padding: 0.5rem 1.25rem;
+  font-weight: 700;
+  cursor: pointer;
+  transition: transform 0.15s ease, box-shadow 0.15s ease;
+  box-shadow: 0 6px 16px -6px rgba(255, 126, 185, 0.7);
+}
+.btn-candy:hover {
+  transform: translateY(-2px) scale(1.03);
+}
+.btn-candy:active {
+  transform: translateY(0) scale(0.98);
+}
+.btn-candy:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.btn-ghost {
+  background: rgba(255, 255, 255, 0.7);
+  color: #6d6d9c;
+  border: 1px solid rgba(167, 139, 250, 0.3);
+  border-radius: 9999px;
+  padding: 0.5rem 1.25rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.15s ease;
+}
+.btn-ghost:hover {
+  background: white;
+  color: #a78bfa;
+}
+
+/* 镜像视频/画布 */
+.mirror {
+  transform: scaleX(-1);
+}
+
+/* 滚动条 */
+::-webkit-scrollbar {
+  width: 10px;
+  height: 10px;
+}
+::-webkit-scrollbar-thumb {
+  background: rgba(167, 139, 250, 0.4);
+  border-radius: 9999px;
+}
+
+/* 渐变文字 */
+.text-gradient {
+  background: linear-gradient(135deg, #ff7eb9, #a78bfa, #7ec8ff);
+  -webkit-background-clip: text;
+  background-clip: text;
+  -webkit-text-fill-color: transparent;
+}
