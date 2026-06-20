@@ -27,7 +27,7 @@ export default function RootLayout({ children }) {
       </head>
       <body>
         <NavBar />
-        <main className="min-h-[calc(100vh-64px)]">{children}</main>
+        <main className="h-[calc(100vh-64px)] overflow-hidden">{children}</main>
       </body>
     </html>
   );

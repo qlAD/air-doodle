@@ -8,7 +8,17 @@ import { useEffect, useState } from 'react';
  * 通过 WebRTC getUserMedia 拉取视频流并挂载到外部传入的 videoRef。
  * 负责权限异常捕获与友好提示。视频画面在 CanvasBoard 中镜像渲染。
  */
-export default function CameraView({ videoRef, onReady, facingMode = 'user' }) {
+/**
+ * 摄像头分辨率预设。`ideal` 表示尽量匹配，达不到也不报错。
+ * 低画质降低算力消耗，适合低配设备或追求极致帧率。
+ */
+export const CAM_QUALITY = {
+  high: { width: { ideal: 1920, max: 1920 }, height: { ideal: 1080, max: 1080 }, frameRate: { ideal: 30, min: 24 } },
+  medium: { width: { ideal: 1280, max: 1280 }, height: { ideal: 720, max: 720 }, frameRate: { ideal: 30 } },
+  low: { width: { ideal: 640, max: 640 }, height: { ideal: 480, max: 480 }, frameRate: { ideal: 24 } },
+};
+
+export default function CameraView({ videoRef, onReady, facingMode = 'user', quality = 'high' }) {
   const [status, setStatus] = useState('idle'); // idle | requesting | ready | denied | nodevice | error
   const [errorMsg, setErrorMsg] = useState('');
 
@@ -24,13 +34,9 @@ export default function CameraView({ videoRef, onReady, facingMode = 'user' }) {
       }
       setStatus('requesting');
       try {
+        const constraints = CAM_QUALITY[quality] || CAM_QUALITY.high;
         stream = await navigator.mediaDevices.getUserMedia({
-          video: {
-            facingMode,
-            width: { ideal: 960 },
-            height: { ideal: 720 },
-            frameRate: { ideal: 30 },
-          },
+          video: { facingMode, ...constraints },
           audio: false,
         });
         if (cancelled) {
@@ -65,7 +71,7 @@ export default function CameraView({ videoRef, onReady, facingMode = 'user' }) {
       if (stream) stream.getTracks().forEach((t) => t.stop());
     };
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [facingMode]);
+  }, [facingMode, quality]);
 
   if (status === 'ready' || status === 'requesting' || status === 'idle') {
     return status === 'requesting' ? (

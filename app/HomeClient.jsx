@@ -15,7 +15,7 @@ export default function HomeClient() {
   const params = useSearchParams();
   const template = params.get('template');
   return (
-    <div className="py-2">
+    <div className="h-full">
       <CanvasBoard initialTemplate={template} />
     </div>
   );

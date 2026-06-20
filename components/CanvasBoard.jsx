@@ -87,6 +87,8 @@ export default function CanvasBoard({ initialTemplate = null }) {
   const [toast, setToast] = useState(null);
   const [achievement, setAchievement] = useState(null);
   const [streak, setStreak] = useState(0);
+  const [showSidebar, setShowSidebar] = useState(false);
+  const [camQuality, setCamQuality] = useState('high'); // high | medium | low
 
   // 同步 React 状态到 ref
   useEffect(() => { stateRef.current.brush = brush; }, [brush]);
@@ -489,120 +491,135 @@ export default function CanvasBoard({ initialTemplate = null }) {
   }, []);
 
   return (
-    <div className="w-full max-w-6xl mx-auto px-3 sm:px-6 py-4">
-      <div className="flex flex-col lg:flex-row gap-4">
-        {/* 画布舞台 */}
-        <div className="flex-1">
-          <div
-            ref={wrapRef}
-            className="relative w-full aspect-[4/3] rounded-3xl overflow-hidden card-soft"
-          >
-            <Backgrounds type={background} />
-            <video
-              ref={videoRef}
-              className="absolute inset-0 w-full h-full object-cover mirror opacity-80"
-              playsInline
-              muted
-            />
-            <canvas ref={drawCanvasRef} className="absolute inset-0 w-full h-full" />
-            <canvas
-              ref={fxCanvasRef}
-              className="absolute inset-0 w-full h-full touch-none cursor-crosshair"
-            />
+    <div className="h-full w-full relative overflow-hidden">
+      {/* ======== 全屏画布舞台 ======== */}
+      <div ref={wrapRef} className="absolute inset-0">
+        <Backgrounds type={background} />
+        <video
+          ref={videoRef}
+          className="absolute inset-0 w-full h-full object-cover mirror opacity-80"
+          playsInline
+          muted
+        />
+        <canvas ref={drawCanvasRef} className="absolute inset-0 w-full h-full" />
+        <canvas
+          ref={fxCanvasRef}
+          className="absolute inset-0 w-full h-full touch-none cursor-crosshair"
+        />
 
-            <CameraView videoRef={videoRef} onReady={() => Sound.unlock()} />
+        <CameraView videoRef={videoRef} onReady={() => Sound.unlock()} quality={camQuality} />
 
-            {running && (
-              <HandDetector
-                videoRef={videoRef}
-                running={running && !showGame}
-                onResults={handleResults}
-                onStatus={setModelStatus}
-              />
-            )}
+        {running && (
+          <HandDetector
+            videoRef={videoRef}
+            running={running && !showGame}
+            onResults={handleResults}
+            onStatus={setModelStatus}
+          />
+        )}
 
-            {/* 顶部状态条 */}
-            <div className="absolute top-3 left-3 flex items-center gap-2 z-20">
-              <span className="px-3 py-1 rounded-full text-xs font-bold card-soft">
-                {modelStatus === 'loading' && '🧠 AI 模型加载中…'}
-                {modelStatus === 'ready' && `✋ 手势就绪 · ${ui.hands} 只手`}
-                {modelStatus === 'error' && '⚠️ 模型加载失败（可用鼠标绘画）'}
-              </span>
-              {streak > 0 && (
-                <span className="px-3 py-1 rounded-full text-xs font-bold card-soft">
-                  🔥 连续 {streak} 天
-                </span>
-              )}
-            </div>
-
-            {/* 当前手势提示 */}
-            <div className="absolute bottom-3 left-1/2 -translate-x-1/2 z-20">
-              <span className="px-4 py-1.5 rounded-full text-sm font-bold card-soft animate-pop">
-                {ui.gesture === 'none' ? '🖐️ 伸出食指开始作画' : ui.gesture}
-              </span>
-            </div>
-
-            {/* Toast */}
-            {toast && (
-              <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 z-30">
-                <div className="px-6 py-3 rounded-2xl text-lg font-extrabold card-soft animate-pop">
-                  {toast}
-                </div>
-              </div>
-            )}
-
-            {/* 成就弹窗 */}
-            {achievement && (
-              <div className="absolute top-6 left-1/2 -translate-x-1/2 z-40 animate-pop">
-                <div className="card-soft rounded-2xl px-6 py-4 flex items-center gap-3 border-2 border-candy-yellow">
-                  <span className="text-4xl">{achievement.icon}</span>
-                  <div>
-                    <div className="text-xs text-candy-purple font-bold">🎉 解锁成就</div>
-                    <div className="font-extrabold">{achievement.name}</div>
-                    <div className="text-xs text-[#6d6d9c]">{achievement.desc}</div>
-                  </div>
-                </div>
-              </div>
-            )}
-
-            {showStickers && (
-              <StickerPanel
-                onPick={(emoji) => {
-                  stateRef.current.pendingSticker = emoji;
-                  popToast(`${emoji} 比划捏合手势放置`);
-                }}
-                onClose={() => setShowStickers(false)}
-              />
-            )}
-
-            {showGame && (
-              <MiniGame
-                videoRef={videoRef}
-                onExit={() => setShowGame(false)}
-                onScore={(s) => {
-                  if (s >= 100) popAchievement(unlock('game_clear'));
-                }}
-              />
-            )}
-          </div>
-
-          {/* 工具栏 */}
-          <div className="mt-3 flex flex-wrap items-center gap-2 justify-center">
-            <button className="btn-ghost" onClick={() => setRunning((v) => !v)}>
-              {running ? '⏸️ 暂停识别' : '▶️ 开启识别'}
-            </button>
-            <button className="btn-ghost" onClick={() => clearCanvas(true)}>🧹 清空</button>
-            <button className="btn-ghost" onClick={() => setShowGame(true)}>🎮 小游戏</button>
-            <button className="btn-ghost" onClick={() => setSoundOn((v) => !v)}>
-              {soundOn ? '🔊 音效' : '🔇 静音'}
-            </button>
-            <button className="btn-ghost" onClick={() => setShowTutorial(true)}>📖 教程</button>
-            <button className="btn-candy" onClick={() => setShowShare(true)}>💾 保存 / 分享</button>
-          </div>
+        {/* 顶部状态条 */}
+        <div className="absolute top-3 left-3 flex items-center gap-2 z-20">
+          <span className="px-3 py-1 rounded-full text-xs font-bold card-soft">
+            {modelStatus === 'loading' && '🧠 AI 模型加载中…'}
+            {modelStatus === 'ready' && `✋ 手势就绪 · ${ui.hands} 只手`}
+            {modelStatus === 'error' && '⚠️ 模型加载失败（可用鼠标绘画）'}
+          </span>
+          {streak > 0 && (
+            <span className="px-3 py-1 rounded-full text-xs font-bold card-soft">
+              🔥 连续 {streak} 天
+            </span>
+          )}
         </div>
 
-        {/* 侧边面板 */}
-        <div className="w-full lg:w-72 space-y-3">
+        {/* 当前手势提示 */}
+        <div className="absolute bottom-20 left-1/2 -translate-x-1/2 z-20">
+          <span className="px-4 py-1.5 rounded-full text-sm font-bold card-soft animate-pop">
+            {ui.gesture === 'none' ? '🖐️ 伸出食指开始作画' : ui.gesture}
+          </span>
+        </div>
+
+        {/* Toast */}
+        {toast && (
+          <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 z-30 pointer-events-none">
+            <div className="px-6 py-3 rounded-2xl text-lg font-extrabold card-soft animate-pop">
+              {toast}
+            </div>
+          </div>
+        )}
+
+        {/* 成就弹窗 */}
+        {achievement && (
+          <div className="absolute top-6 left-1/2 -translate-x-1/2 z-40 animate-pop">
+            <div className="card-soft rounded-2xl px-6 py-4 flex items-center gap-3 border-2 border-candy-yellow">
+              <span className="text-4xl">{achievement.icon}</span>
+              <div>
+                <div className="text-xs text-candy-purple font-bold">🎉 解锁成就</div>
+                <div className="font-extrabold">{achievement.name}</div>
+                <div className="text-xs text-[#6d6d9c]">{achievement.desc}</div>
+              </div>
+            </div>
+          </div>
+        )}
+
+        {showStickers && (
+          <StickerPanel
+            onPick={(emoji) => {
+              stateRef.current.pendingSticker = emoji;
+              popToast(`${emoji} 比划捏合手势放置`);
+            }}
+            onClose={() => setShowStickers(false)}
+          />
+        )}
+
+        {showGame && (
+          <MiniGame
+            videoRef={videoRef}
+            onExit={() => setShowGame(false)}
+            onScore={(s) => {
+              if (s >= 100) popAchievement(unlock('game_clear'));
+            }}
+          />
+        )}
+      </div>
+
+      {/* ======== 底部浮动工具栏 ======== */}
+      <div className="absolute bottom-3 left-1/2 -translate-x-1/2 z-20 flex items-center gap-1.5 px-3 py-2 rounded-2xl card-soft">
+        <ToolBtn onClick={() => setRunning((v) => !v)}>
+          {running ? '⏸️' : '▶️'}
+        </ToolBtn>
+        <ToolBtn onClick={() => clearCanvas(true)}>🧹</ToolBtn>
+        <ToolBtn onClick={() => setShowGame(true)}>🎮</ToolBtn>
+        <ToolBtn onClick={() => setSoundOn((v) => !v)}>
+          {soundOn ? '🔊' : '🔇'}
+        </ToolBtn>
+        <ToolBtn
+          onClick={() => setCamQuality((q) => q === 'high' ? 'medium' : q === 'medium' ? 'low' : 'high')}
+        >
+          {camQuality === 'high' ? '📷' : camQuality === 'medium' ? '📹' : '🖥️'}
+        </ToolBtn>
+        <ToolBtn onClick={() => setShowTutorial(true)}>📖</ToolBtn>
+        <ToolBtn onClick={() => setShowSidebar((v) => !v)} activate>🎨</ToolBtn>
+        <button className="btn-candy text-sm px-4 py-1.5" onClick={() => setShowShare(true)}>
+          💾 保存
+        </button>
+      </div>
+
+      {/* ======== 浮动侧面板（右滑） ======== */}
+      <div
+        className={`absolute top-0 right-0 h-full w-72 z-30 transition-transform duration-300 ${
+          showSidebar ? 'translate-x-0' : 'translate-x-full'
+        }`}
+      >
+        <div className="h-full overflow-y-auto px-3 py-4 space-y-3 bg-white/90 backdrop-blur-xl border-l border-white/60">
+          {/* 关闭按钮 */}
+          <button
+            onClick={() => setShowSidebar(false)}
+            className="absolute top-3 right-3 w-8 h-8 rounded-full card-soft flex items-center justify-center font-bold text-[#6d6d9c] hover:text-candy-pink z-10"
+          >
+            ×
+          </button>
+
           <GesturePanel gesture={ui.gesture} brush={brush} color={color} hands={ui.hands} />
           <BrushPanel
             brush={brush}
@@ -621,6 +638,12 @@ export default function CanvasBoard({ initialTemplate = null }) {
         </div>
       </div>
 
+      {/* 侧边栏打开时的遮罩 */}
+      {showSidebar && (
+        <div className="absolute inset-0 z-25" onClick={() => setShowSidebar(false)} />
+      )}
+
+      {/* ======== 模态 ======== */}
       {showTutorial && (
         <TutorialGuide
           onClose={() => {
@@ -640,5 +663,18 @@ export default function CanvasBoard({ initialTemplate = null }) {
         />
       )}
     </div>
+  );
+}
+
+function ToolBtn({ onClick, children, activate }) {
+  return (
+    <button
+      onClick={onClick}
+      className={`w-9 h-9 rounded-full flex items-center justify-center text-sm transition ${
+        activate ? 'bg-candy-purple text-white' : 'bg-white/70 hover:bg-white text-[#6d6d9c]'
+      }`}
+    >
+      {children}
+    </button>
   );
 }
