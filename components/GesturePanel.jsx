@@ -6,19 +6,21 @@ import { BRUSHES } from '@/lib/brushes';
  * 手势可视化面板：实时显示当前手势、画笔、颜色，以及手势速查表。
  */
 const CHEATSHEET = [
-  { g: '☝️ 食指伸直', a: '隔空绘画' },
+  { g: '☝️ 食指伸直', a: '光标模式（默认）' },
+  { g: '☝️🤞 食指+中指并拢', a: '绘画模式' },
+  { g: '🤏 拇指食指捏合', a: '橡皮擦' },
+  { g: '🖐️ 五指全张', a: '拖拽无限画布' },
   { g: '✊ 握拳', a: '暂停落笔' },
-  { g: '🖐️ 五指摊开', a: '橡皮擦' },
   { g: '👌 OK 手势', a: '切换颜色' },
-  { g: '🤟 三指', a: '切换特效笔' },
-  { g: '✌️ 比耶', a: '贴纸面板' },
-  { g: '🤏 捏合', a: '放置贴纸' },
-  { g: '✊✊ 双手握拳2秒', a: '清空画布' },
-  { g: '🖐️🖐️ 双手摊开', a: '雾化擦除' },
+  { g: '🤟 三指静置1秒', a: '笔刷滚盘' },
+  { g: '✌️ 比耶', a: '页面滚动' },
+  { g: '🖐️→✊ 张开→握拳', a: '贴纸面板' },
+  { g: '🖐️🖐️ 双手全张2秒', a: '清空画布' },
   { g: '🫰 双手比心', a: '爱心画笔' },
+  { g: '🫱 L型+捏合3秒', a: '取景截图' },
 ];
 
-export default function GesturePanel({ gesture, brush, color, hands }) {
+export default function GesturePanel({ gesture, brush, color, hands, mode }) {
   const b = BRUSHES.find((x) => x.id === brush);
   return (
     <div className="card-soft rounded-2xl p-4">
@@ -39,9 +41,14 @@ export default function GesturePanel({ gesture, brush, color, hands }) {
           <div className="font-bold">{hands}</div>
         </div>
       </div>
-      <div className="rounded-xl bg-white/60 px-3 py-2 text-center font-bold text-candy-purple text-sm mb-3 min-h-[2.2rem] flex items-center justify-center">
+      <div className="rounded-xl bg-white/60 px-3 py-2 text-center font-bold text-candy-purple text-sm mb-1 min-h-[2.2rem] flex items-center justify-center">
         {gesture === 'none' ? '等待手势…' : gesture}
       </div>
+      {mode && (
+        <div className="text-center text-[10px] text-[#9a9ac0] mb-3">
+          当前模式：{mode}
+        </div>
+      )}
       <details className="text-xs">
         <summary className="cursor-pointer font-bold text-[#6d6d9c] mb-1">📋 手势速查表</summary>
         <ul className="space-y-1 mt-2">

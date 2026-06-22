@@ -155,7 +155,7 @@ export default function MiniGame({ videoRef, onExit, onScore }) {
         ctx.beginPath();
         ctx.arc(px, py, e.r, 0, Math.PI * 2);
         ctx.fill();
-        if (cursor && hand?.gesture === GESTURE.POINTING) {
+        if (cursor && hand?.gesture === GESTURE.CURSOR) {
           if (Math.hypot(cursor.x - px, cursor.y - py) < e.r + 8) {
             e.alive = false;
             setScore((s) => s + 10);
@@ -180,7 +180,7 @@ export default function MiniGame({ videoRef, onExit, onScore }) {
       }
     } else if (mode === 'guess') {
       // 限时绘画：食指画线，按覆盖度评分
-      if (hand?.gesture === GESTURE.POINTING && cursor && running) {
+      if (hand?.gesture === GESTURE.CURSOR && cursor && running) {
         if (g.last) {
           ctx.strokeStyle = '#ff5c8a';
           ctx.lineWidth = 6;
